@@ -1,1 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perspective Engine</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="mark">PE</div>
+      <div>
+        <h1>Perspective Engine</h1>
+        <p>See what you couldn't see before.</p>
+      </div>
+    </header>
 
+    <section class="intro" id="intro">
+      <h2>What's going on?</h2>
+      <p>Tell me what's happening. It doesn't need to be written perfectly.</p>
+    </section>
+
+    <section id="conversation" class="conversation"></section>
+
+    <form id="chatForm">
+      <textarea id="message" rows="5"
+        placeholder="Example: I know I need to change something, but I keep doing the same thing..."></textarea>
+      <button type="submit">Help me see it differently →</button>
+    </form>
+
+    <div id="status" class="status"></div>
+
+    <div id="feedback" class="feedback hidden">
+      <span>Did this actually help?</span>
+      <button data-rating="yes">Yes</button>
+      <button data-rating="somewhat">Somewhat</button>
+      <button data-rating="no">No</button>
+    </div>
+
+    <footer>
+      Experimental prototype · Not therapy or emergency support
+    </footer>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
