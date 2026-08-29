@@ -102,9 +102,7 @@ app.post("/api/chat", async (req, res) => {
           content: message
         }
       ],
-      response_format: {
-        type: "json_object"
-      },
+    
     
     });
 
@@ -112,9 +110,9 @@ app.post("/api/chat", async (req, res) => {
 
     console.log("Gemini response received.");
 
-    const data = JSON.parse(raw);
-
-    res.json(data);
+  res.json({
+  response: raw
+}); 
 
   } catch (error) {
 
