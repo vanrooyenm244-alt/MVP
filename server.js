@@ -105,7 +105,7 @@ app.post("/api/chat", async (req, res) => {
       response_format: {
         type: "json_object"
       },
-      temperature: 0.8
+    
     });
 
     const raw = completion.choices?.[0]?.message?.content;
