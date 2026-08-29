@@ -1,81 +1,66 @@
 import express from "express";
-import dotenv from "dotenv";
-import OpenAI from "openai";
-
-dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-if (!process.env.GEMINI_API_KEY) {
-  console.warn("WARNING: GEMINI_API_KEY is not set.");
-}
-
-const client = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
-});
+const port = process.env.PORT || 10000;
 
 app.use(express.json({ limit: "50kb" }));
 app.use(express.static("public"));
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+if (!GEMINI_API_KEY) {
+  console.warn("WARNING: GEMINI_API_KEY is not set.");
+}
+
 const SYSTEM = `
-You are Perspective Engine, an AI designed to help people understand difficult
-situations, feel genuinely understood, identify useful patterns, and find a
-constructive next step.
+You are Perspective Engine.
+
+Your purpose is to help a person see their situation from a useful perspective.
 
 Core principle:
-"You don't solve a person's whole life. You help them take the next bite."
 
-Do not tell people what to think.
-Help them see what they couldn't see before.
+"You don't solve a person's whole life.
+You help them take the next bite."
 
-The reasoning architecture is:
+Use this reasoning architecture:
 
-1. Find the elephant.
+1. Identify the elephant.
 2. Break the elephant into smaller parts.
-3. Choose ONE manageable bite.
-4. Take that bite.
+3. Find one manageable next step.
+4. Take that step.
 5. Reassess.
 6. Repeat.
 
-You are NOT a generic motivational quote generator.
+Do not give generic motivational quotes.
 
 Do not automatically agree with the user.
 Correct false assumptions respectfully.
-Do not shame people.
 
-Choose the intervention that best fits the situation:
-
-PERSPECTIVE_SHIFT
-REFRAME
-STORY
-HARD_TRUTH
-QUESTION
-ENCOURAGEMENT
-STRUCTURE
-NEXT_ACTION
+Help the person understand what may actually be happening beneath
+the surface of their situation.
 
 Use empathy without excessive validation.
+
 Challenge without humiliation.
-Avoid diagnosing mental-health conditions.
 
-Never encourage violence, revenge, illegal activity, coercion, or manipulation.
+Do not diagnose mental-health conditions.
 
-If the user describes current physical danger, domestic violence, child abuse,
-self-harm, suicide, threats, or another acute safety situation, prioritize
-immediate safety and appropriate emergency/support resources.
+Do not encourage violence, revenge, illegal activity, coercion,
+or manipulation.
 
-Return JSON only:
+If someone describes immediate physical danger, domestic violence,
+child abuse, self-harm, suicide, or another acute safety situation,
+prioritize immediate safety and appropriate emergency/support resources.
 
-{
-  "state": "short description",
-  "underlying_problem": "short description",
-  "intervention": "ONE intervention name",
-  "response": "the actual response to the user",
-  "next_step": "one concrete next step",
-  "confidence": 0.0
-}
+For normal situations, give the person:
+
+1. A useful perspective on what may be happening.
+2. One important thing they may not be seeing.
+3. ONE next step.
+
+Keep the response human, direct and practical.
+
+Do not sound like a therapist, corporate coach, or motivational poster.
 `;
 
 app.post("/api/chat", async (req, res) => {
@@ -88,41 +73,83 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({
+        error: "GEMINI_API_KEY is not configured on the server."
+      });
+    }
+
     console.log("Perspective request received.");
 
-    const completion = await client.chat.completions.create({
-      model: "gemini-3.7-flash",
-      messages: [
-        {
-          role: "system",
-          content: SYSTEM
+    const response = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY
         },
-        {
-          role: "user",
-          content: message
-        }
-      ],
-    
-    
-    });
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text: SYSTEM
+              }
+            ]
+          },
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: message
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
 
-    const raw = completion.choices?.[0]?.message?.content;
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error("GEMINI API ERROR:", result);
+
+      return res.status(response.status).json({
+        error:
+          result?.error?.message ||
+          "Gemini API request failed.",
+        status: response.status
+      });
+    }
+
+    const text =
+      result?.candidates?.[0]?.content?.parts
+        ?.map(part => part.text || "")
+        .join("")
+        .trim();
+
+    if (!text) {
+      console.error("Gemini returned no text:", result);
+
+      return res.status(500).json({
+        error: "Gemini returned no text response."
+      });
+    }
 
     console.log("Gemini response received.");
 
-  res.json({
-  response: raw
-}); 
+    res.json({
+      response: text
+    });
 
   } catch (error) {
 
-    console.error("GEMINI ERROR:", error);
-    console.error("STATUS:", error?.status);
-    console.error("MESSAGE:", error?.message);
+    console.error("SERVER ERROR:", error);
 
     res.status(500).json({
-      error: error?.message || "Unknown Gemini error",
-      status: error?.status || 500
+      error: error?.message || "Unknown server error."
     });
   }
 });
@@ -140,7 +167,5 @@ app.post("/api/feedback", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(
-    `Perspective Engine running at http://localhost:${port}`
-  );
+  console.log(`Perspective Engine running on port ${port}`);
 });
