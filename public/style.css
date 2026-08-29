@@ -1,0 +1,168 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f4f2ef;
+  color: #242321;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.app {
+  width: min(760px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 42px 0 30px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 42px;
+}
+
+.mark {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #242321;
+  color: white;
+  font-weight: 800;
+}
+
+h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+header p {
+  margin: 4px 0 0;
+  color: #77736d;
+}
+
+.intro,
+.bubble {
+  background: white;
+  border: 1px solid #e6e2dc;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.04);
+}
+
+.intro h2 {
+  margin-top: 0;
+}
+
+.intro p {
+  color: #66615b;
+  line-height: 1.6;
+}
+
+.conversation {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.user {
+  background: #242321;
+  color: white;
+}
+
+.engine h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #8a847c;
+}
+
+.response {
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.next {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid #eee9e2;
+  font-weight: 650;
+}
+
+form {
+  margin-top: 18px;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 130px;
+  border: 1px solid #d8d3cb;
+  border-radius: 16px;
+  padding: 16px;
+  font: inherit;
+  background: white;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: #777;
+}
+
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 13px 18px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+form button {
+  margin-top: 10px;
+  width: 100%;
+  background: #242321;
+  color: white;
+}
+
+button:hover {
+  opacity: .88;
+}
+
+.status {
+  min-height: 24px;
+  margin: 12px 0;
+  color: #77736d;
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e6e2dc;
+  border-radius: 16px;
+}
+
+.feedback span {
+  margin-right: auto;
+  font-weight: 650;
+}
+
+.feedback button {
+  background: #f0ede8;
+}
+
+.hidden {
+  display: none;
+}
+
+footer {
+  margin-top: 35px;
+  text-align: center;
+  color: #918b83;
+  font-size: 12px;
+}
