@@ -86,12 +86,16 @@ app.post("/api/chat", async (req, res) => {
     const data = JSON.parse(raw);
 
     res.json(data);
-  } catch (error) {
-    console.error(error);
+    } catch (error) {
+    console.error("OPENAI ERROR:", error);
+    console.error("STATUS:", error?.status);
+    console.error("MESSAGE:", error?.message);
+
     res.status(500).json({
-      error: "The engine could not respond. Check your API key and server logs."
+      error: error?.message || "Unknown OpenAI error",
+      status: error?.status || 500
     });
-  }
+}
 });
 
 app.post("/api/feedback", (req, res) => {
