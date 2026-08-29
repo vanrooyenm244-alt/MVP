@@ -7,11 +7,14 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-if (!process.env.OPENAI_API_KEY) {
-  console.warn("WARNING: OPENAI_API_KEY is not set.");
+if (!process.env.GEMINI_API_KEY) {
+  console.warn("WARNING: GEMINI_API_KEY is not set.");
 }
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+});
 
 app.use(express.json({ limit: "50kb" }));
 app.use(express.static("public"));
@@ -22,41 +25,49 @@ situations, feel genuinely understood, identify useful patterns, and find a
 constructive next step.
 
 Core principle:
-"Don't tell people what to think. Help them see what they couldn't see before."
+"You don't solve a person's whole life. You help them take the next bite."
 
-You are NOT a generic motivational quote generator. Do not automatically agree
-with the user. Correct false assumptions respectfully. Do not shame people.
+Do not tell people what to think.
+Help them see what they couldn't see before.
 
-Your process:
-1. Understand the situation.
-2. Identify the likely underlying problem and emotional/state signals.
-3. Choose ONE primary intervention:
-   PERSPECTIVE_SHIFT, REFRAME, STORY, HARD_TRUTH, QUESTION,
-   ENCOURAGEMENT, STRUCTURE, NEXT_ACTION.
-4. Respond naturally and personally.
-5. End with one practical next step or one powerful question.
+The reasoning architecture is:
 
-Intervention guidance:
-- PERSPECTIVE_SHIFT: change the frame through which the person sees the problem.
-- REFRAME: replace an unhelpful interpretation with a more useful, evidence-based one.
-- STORY: use a short original analogy/story when it will make the idea memorable.
-- HARD_TRUTH: say an uncomfortable truth when avoidance is the main problem.
-- QUESTION: ask a question that helps the person discover something themselves.
-- ENCOURAGEMENT: restore realistic hope using evidence, not empty praise.
-- STRUCTURE: turn chaos into an ordered sequence.
-- NEXT_ACTION: reduce a large problem to a concrete first action.
+1. Find the elephant.
+2. Break the elephant into smaller parts.
+3. Choose ONE manageable bite.
+4. Take that bite.
+5. Reassess.
+6. Repeat.
 
-Use empathy without excessive validation. Challenge without humiliation.
-Avoid diagnosing mental-health conditions. Never encourage violence, revenge,
-illegal activity, coercion, or manipulation.
+You are NOT a generic motivational quote generator.
 
-SAFETY:
+Do not automatically agree with the user.
+Correct false assumptions respectfully.
+Do not shame people.
+
+Choose the intervention that best fits the situation:
+
+PERSPECTIVE_SHIFT
+REFRAME
+STORY
+HARD_TRUTH
+QUESTION
+ENCOURAGEMENT
+STRUCTURE
+NEXT_ACTION
+
+Use empathy without excessive validation.
+Challenge without humiliation.
+Avoid diagnosing mental-health conditions.
+
+Never encourage violence, revenge, illegal activity, coercion, or manipulation.
+
 If the user describes current physical danger, domestic violence, child abuse,
 self-harm, suicide, threats, or another acute safety situation, prioritize
-immediate safety and appropriate emergency/support resources. Do not romanticize
-the situation or imply the person caused the abuse. Keep the response practical.
+immediate safety and appropriate emergency/support resources.
 
 Return JSON only:
+
 {
   "state": "short description",
   "underlying_problem": "short description",
@@ -70,43 +81,68 @@ Return JSON only:
 app.post("/api/chat", async (req, res) => {
   try {
     const message = String(req.body?.message || "").trim();
-    if (!message) return res.status(400).json({ error: "Message required." });
+
+    if (!message) {
+      return res.status(400).json({
+        error: "Message required."
+      });
+    }
+
+    console.log("Perspective request received.");
 
     const completion = await client.chat.completions.create({
-      model: "gpt-5-mini",
-      response_format: { type: "json_object" },
+      model: "gemini-3.7-flash",
       messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: message }
+        {
+          role: "system",
+          content: SYSTEM
+        },
+        {
+          role: "user",
+          content: message
+        }
       ],
+      response_format: {
+        type: "json_object"
+      },
       temperature: 0.8
     });
 
     const raw = completion.choices?.[0]?.message?.content;
+
+    console.log("Gemini response received.");
+
     const data = JSON.parse(raw);
 
     res.json(data);
-    } catch (error) {
-    console.error("OPENAI ERROR:", error);
+
+  } catch (error) {
+
+    console.error("GEMINI ERROR:", error);
     console.error("STATUS:", error?.status);
     console.error("MESSAGE:", error?.message);
 
     res.status(500).json({
-      error: error?.message || "Unknown OpenAI error",
+      error: error?.message || "Unknown Gemini error",
       status: error?.status || 500
     });
-}
+  }
 });
 
 app.post("/api/feedback", (req, res) => {
-  // Prototype only: feedback is acknowledged but not persisted yet.
+
   console.log("Feedback:", {
     intervention: req.body?.intervention,
     rating: req.body?.rating
   });
-  res.json({ ok: true });
+
+  res.json({
+    ok: true
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Perspective Engine running at http://localhost:${port}`);
+  console.log(
+    `Perspective Engine running at http://localhost:${port}`
+  );
 });
